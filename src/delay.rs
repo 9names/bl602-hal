@@ -43,6 +43,175 @@ impl McycleDelay {
     }
 }
 
+impl DelayUs<i8> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of microseconds `us` has elapsed
+    #[inline]
+    fn try_delay_us(&mut self, us: i8) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((us as u64 * (self.core_frequency as u64)) / 1_000_000);
+
+        Ok(())
+    }
+}
+
+impl DelayMs<i8> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of milliseconds `ms` has elapsed
+    #[inline]
+    fn try_delay_ms(&mut self, ms: i8) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((ms as u64* (self.core_frequency as u64)) / 1000);
+
+        Ok(())
+    }
+}
+
+impl DelayUs<i16> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of microseconds `us` has elapsed
+    #[inline]
+    fn try_delay_us(&mut self, us: i16) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((us as u64 * (self.core_frequency as u64)) / 1_000_000);
+
+        Ok(())
+    }
+}
+
+impl DelayMs<i16> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of milliseconds `ms` has elapsed
+    #[inline]
+    fn try_delay_ms(&mut self, ms: i16) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((ms as u64* (self.core_frequency as u64)) / 1000);
+
+        Ok(())
+    }
+}
+
+impl DelayUs<i32> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of microseconds `us` has elapsed
+    #[inline]
+    fn try_delay_us(&mut self, us: i32) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((us as u64 * (self.core_frequency as u64)) / 1_000_000);
+
+        Ok(())
+    }
+}
+
+impl DelayMs<i32> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of milliseconds `ms` has elapsed
+    #[inline]
+    fn try_delay_ms(&mut self, ms: i32) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((ms as u64* (self.core_frequency as u64)) / 1000);
+
+        Ok(())
+    }
+}
+
+impl DelayUs<i64> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of microseconds `us` has elapsed
+    #[inline]
+    fn try_delay_us(&mut self, us: i64) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((us as u64 * (self.core_frequency as u64)) / 1_000_000);
+
+        Ok(())
+    }
+}
+
+impl DelayMs<i64> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of milliseconds `ms` has elapsed
+    #[inline]
+    fn try_delay_ms(&mut self, ms: i64) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((ms as u64 * (self.core_frequency as u64)) / 1000);
+
+        Ok(())
+    }
+}
+
+
+impl DelayUs<u8> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of microseconds `us` has elapsed
+    #[inline]
+    fn try_delay_us(&mut self, us: u8) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((us as u64 * (self.core_frequency as u64)) / 1_000_000);
+
+        Ok(())
+    }
+}
+
+impl DelayMs<u8> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of milliseconds `ms` has elapsed
+    #[inline]
+    fn try_delay_ms(&mut self, ms: u8) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((ms as u64* (self.core_frequency as u64)) / 1000);
+
+        Ok(())
+    }
+}
+
+impl DelayUs<u16> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of microseconds `us` has elapsed
+    #[inline]
+    fn try_delay_us(&mut self, us: u16) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((us as u64 * (self.core_frequency as u64)) / 1_000_000);
+
+        Ok(())
+    }
+}
+
+impl DelayMs<u16> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of milliseconds `ms` has elapsed
+    #[inline]
+    fn try_delay_ms(&mut self, ms: u16) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((ms as u64* (self.core_frequency as u64)) / 1000);
+
+        Ok(())
+    }
+}
+
+impl DelayUs<u32> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of microseconds `us` has elapsed
+    #[inline]
+    fn try_delay_us(&mut self, us: u32) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((us as u64 * (self.core_frequency as u64)) / 1_000_000);
+
+        Ok(())
+    }
+}
+
+impl DelayMs<u32> for McycleDelay {
+    type Error = Infallible;
+
+    /// Performs a busy-wait loop until the number of milliseconds `ms` has elapsed
+    #[inline]
+    fn try_delay_ms(&mut self, ms: u32) -> Result<(), Infallible> {
+        McycleDelay::delay_cycles((ms as u64* (self.core_frequency as u64)) / 1000);
+
+        Ok(())
+    }
+}
+
 impl DelayUs<u64> for McycleDelay {
     type Error = Infallible;
 
@@ -66,3 +235,5 @@ impl DelayMs<u64> for McycleDelay {
         Ok(())
     }
 }
+
+
