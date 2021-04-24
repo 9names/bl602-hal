@@ -296,7 +296,7 @@ where
             .i2c
             .i2c_bus_busy
             .read()
-            .cr_i2c_bus_busy_clr()
+            .sts_i2c_bus_busy()
             .bit_is_set()
         {
             // wait for transfer to finish
