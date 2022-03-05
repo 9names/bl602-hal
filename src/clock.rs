@@ -26,6 +26,7 @@
 use crate::delay::*;
 use crate::gpio::ClkCfg;
 use crate::pac;
+use crate::rom;
 use core::num::NonZeroU32;
 use embedded_hal::delay::blocking::DelayUs;
 use embedded_time::rate::{Extensions, Hertz};
@@ -221,12 +222,18 @@ impl Strict {
 
         // Enable system clock, PLL + crystal if required
         // omit if settings match boot defaults
-        if sysclk != SysclkFreq::Pll160Mhz || pll_xtal_freq != 40_000_000 {
-            match sysclk {
-                SysclkFreq::Rc32Mhz => glb_set_system_clk_rc32(),
-                _ => glb_set_system_clk_pll(sysclk as u32, pll_xtal_freq),
-            };
-        }
+
+        // TODO: Match enums to allow flexible clocking
+        let xtal = rom::clock::types::GLB_PLL_XTAL_Type::XTAL_40M;
+        let freq = rom::clock::types::GLB_SYS_CLK_Type::PLL160M;
+        rom::clock::GLB_Set_System_CLK(xtal, freq);
+
+        // if sysclk != SysclkFreq::Pll160Mhz || pll_xtal_freq != 40_000_000 {
+        //     match sysclk {
+        //         SysclkFreq::Rc32Mhz => glb_set_system_clk_rc32(),
+        //         _ => glb_set_system_clk_pll(sysclk as u32, pll_xtal_freq),
+        //     };
+        // }
 
         // If PLL is enabled, use that for the UART base clock
         // Otherwise, use sysclk as the UART clock
