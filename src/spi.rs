@@ -195,7 +195,7 @@ where
     {
         let glb = unsafe { &*pac::GLB::ptr() };
 
-        glb.glb_parm.modify(|_r, w| {
+        glb.glb_parm().modify(|_r, w| {
             w.reg_spi_0_master_mode()
                 .set_bit()
                 .reg_spi_0_swap()
@@ -210,7 +210,7 @@ where
         }
 
         let len = (len - 1) as u8;
-        spi.spi_prd_0.modify(|_r, w| unsafe {
+        spi.spi_prd_0().modify(|_r, w| unsafe {
             w.cr_spi_prd_s()
                 .bits(len)
                 .cr_spi_prd_p()
@@ -221,10 +221,10 @@ where
                 .bits(len)
         });
 
-        spi.spi_prd_1
+        spi.spi_prd_1()
             .modify(|_r, w| unsafe { w.cr_spi_prd_i().bits(len) });
 
-        spi.spi_config.modify(|_, w| unsafe {
+        spi.spi_config().modify(|_, w| unsafe {
             w.cr_spi_sclk_pol()
                 .bit(match mode.polarity {
                     embedded_hal::spi::Polarity::IdleLow => false,
@@ -257,11 +257,11 @@ where
         match format {
             SpiBitFormat::LsbFirst => self
                 .spi
-                .spi_config
+                .spi_config()
                 .modify(|_, w| w.cr_spi_bit_inv().set_bit()),
             SpiBitFormat::MsbFirst => self
                 .spi
-                .spi_config
+                .spi_config()
                 .modify(|_, w| w.cr_spi_bit_inv().clear_bit()),
         }
     }
@@ -269,7 +269,7 @@ where
     /// Clear FIFOs
     pub fn clear_fifo(&mut self) {
         self.spi
-            .spi_fifo_config_0
+            .spi_fifo_config_0()
             .write(|w| w.rx_fifo_clr().set_bit().tx_fifo_clr().set_bit());
     }
 }
@@ -283,31 +283,31 @@ where
     PINS: Pins<pac::SPI>,
 {
     fn read(&mut self) -> nb::Result<u8, Error> {
-        let spi_fifo_config_0 = self.spi.spi_fifo_config_0.read();
+        let spi_fifo_config_0 = self.spi.spi_fifo_config_0().read();
 
         if spi_fifo_config_0.rx_fifo_overflow().bit_is_set() {
             Err(nb::Error::Other(Error::RxOverflow))
         } else if spi_fifo_config_0.rx_fifo_underflow().bit_is_set() {
             Err(nb::Error::Other(Error::RxUnderflow))
-        } else if self.spi.spi_fifo_config_1.read().rx_fifo_cnt().bits() == 0 {
+        } else if self.spi.spi_fifo_config_1().read().rx_fifo_cnt().bits() == 0 {
             Err(nb::Error::WouldBlock)
         } else {
-            Ok((self.spi.spi_fifo_rdata.read().bits() & 0xff) as u8)
+            Ok((self.spi.spi_fifo_rdata().read().bits() & 0xff) as u8)
         }
     }
 
     fn write(&mut self, data: u8) -> nb::Result<(), Self::Error> {
-        let spi_fifo_config_0 = self.spi.spi_fifo_config_0.read();
+        let spi_fifo_config_0 = self.spi.spi_fifo_config_0().read();
 
         if spi_fifo_config_0.tx_fifo_overflow().bit_is_set() {
             Err(nb::Error::Other(Error::TxOverflow))
         } else if spi_fifo_config_0.tx_fifo_underflow().bit_is_set() {
             Err(nb::Error::Other(Error::TxUnderflow))
-        } else if self.spi.spi_fifo_config_1.read().tx_fifo_cnt().bits() == 0 {
+        } else if self.spi.spi_fifo_config_1().read().tx_fifo_cnt().bits() == 0 {
             Err(nb::Error::WouldBlock)
         } else {
             self.spi
-                .spi_fifo_wdata
+                .spi_fifo_wdata()
                 .write(|w| unsafe { w.bits(data as u32) });
 
             Ok(())

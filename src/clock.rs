@@ -231,11 +231,11 @@ impl Strict {
         // If PLL is enabled, use that for the UART base clock
         // Otherwise, use sysclk as the UART clock
         unsafe { &*pac::HBN::ptr() }
-            .hbn_glb
+            .hbn_glb()
             .modify(|_, w| w.hbn_uart_clk_sel().bit(pll_enabled));
 
         // Write UART clock divider
-        unsafe { &*pac::GLB::ptr() }.clk_cfg2.modify(|_, w| unsafe {
+        unsafe { &*pac::GLB::ptr() }.clk_cfg2().modify(|_, w| unsafe {
             w.uart_clk_div()
                 .bits(uart_clk_div - 1_u8)
                 .uart_clk_en()
@@ -259,7 +259,7 @@ impl Strict {
         let spi_clk_div = ((spi_clk_div - 1) & 0b11111) as u8;
         // Write SPI clock divider
         unsafe { &*pac::GLB::ptr() }
-            .clk_cfg3
+            .clk_cfg3()
             .modify(|_, w| unsafe { w.spi_clk_en().set_bit().spi_clk_div().bits(spi_clk_div) });
 
         // I2C config
@@ -278,7 +278,7 @@ impl Strict {
         let i2c_clk_div = ((i2c_clk_div - 1) & 0xff) as u8;
         // Write I2C clock divider
         unsafe { &*pac::GLB::ptr() }
-            .clk_cfg3
+            .clk_cfg3()
             .modify(|_, w| unsafe { w.i2c_clk_en().set_bit().i2c_clk_div().bits(i2c_clk_div) });
 
         Clocks {
@@ -301,22 +301,22 @@ impl Default for Strict {
 /// Gets the current bus clock rate
 fn calculate_bus_clock() -> Hertz {
     let root_clk_sel = unsafe { &*pac::GLB::ptr() }
-        .clk_cfg0
+        .clk_cfg0()
         .read()
         .hbn_root_clk_sel()
         .bits();
     let pll_clk_sel = unsafe { &*pac::GLB::ptr() }
-        .clk_cfg0
+        .clk_cfg0()
         .read()
         .reg_pll_sel()
         .bits();
     let hclk_div = unsafe { &*pac::GLB::ptr() }
-        .clk_cfg0
+        .clk_cfg0()
         .read()
         .reg_hclk_div()
         .bits();
     let bclk_div = unsafe { &*pac::GLB::ptr() }
-        .clk_cfg0
+        .clk_cfg0()
         .read()
         .reg_bclk_div()
         .bits();
@@ -338,13 +338,13 @@ fn calculate_bus_clock() -> Hertz {
 /// Sets the system clock in the (undocumented) system_core_clock register
 fn system_core_clock_set(value: u32) {
     unsafe { &*pac::HBN::ptr() }
-        .hbn_rsv2
+        .hbn_rsv2()
         .write(|w| unsafe { w.bits(value) })
 }
 
 /// Gets the system clock in the (undocumented) system_core_clock register
 fn system_core_clock_get() -> u32 {
-    unsafe { &*pac::HBN::ptr() }.hbn_rsv2.read().bits()
+    unsafe { &*pac::HBN::ptr() }.hbn_rsv2().read().bits()
 }
 
 fn glb_set_system_clk_div(hclkdiv: u8, bclkdiv: u8) {
@@ -355,7 +355,7 @@ fn glb_set_system_clk_div(hclkdiv: u8, bclkdiv: u8) {
     let glb_reg_bclk_dis = 0x4000_0FFC as *mut u32;
 
     unsafe { &*pac::GLB::ptr() }
-        .clk_cfg0
+        .clk_cfg0()
         .modify(|_, w| unsafe { w.reg_hclk_div().bits(hclkdiv).reg_bclk_div().bits(bclkdiv) });
     unsafe { glb_reg_bclk_dis.write_volatile(1) };
     unsafe { glb_reg_bclk_dis.write_volatile(0) };
@@ -370,7 +370,7 @@ fn glb_set_system_clk_div(hclkdiv: u8, bclkdiv: u8) {
     delay.delay_us(1);
 
     unsafe { &*pac::GLB::ptr() }
-        .clk_cfg0
+        .clk_cfg0()
         .modify(|_, w| w.reg_hclk_en().set_bit().reg_bclk_en().set_bit());
 
     delay.delay_us(1);
@@ -380,7 +380,7 @@ fn glb_set_system_clk_div(hclkdiv: u8, bclkdiv: u8) {
 // It is currently unused.
 #[allow(dead_code)]
 fn pds_select_xtal_as_pll_ref() {
-    unsafe { &*pac::PDS::ptr() }.clkpll_top_ctrl.modify(|_, w| {
+    unsafe { &*pac::PDS::ptr() }.clkpll_top_ctrl().modify(|_, w| {
         w.clkpll_refclk_sel()
             .set_bit()
             .clkpll_xtal_rc32m_sel()
@@ -393,10 +393,10 @@ fn pds_select_xtal_as_pll_ref() {
 #[allow(dead_code)]
 fn pds_power_off_pll() {
     unsafe { &*pac::PDS::ptr() }
-        .pu_rst_clkpll
+        .pu_rst_clkpll()
         .modify(|_, w| w.pu_clkpll_sfreg().clear_bit().pu_clkpll().clear_bit());
 
-    unsafe { &*pac::PDS::ptr() }.pu_rst_clkpll.modify(|_, w| {
+    unsafe { &*pac::PDS::ptr() }.pu_rst_clkpll().modify(|_, w| {
         w.clkpll_pu_cp()
             .clear_bit()
             .clkpll_pu_pfd()
@@ -464,7 +464,7 @@ fn pds_power_on_pll(freq: u32) {
 
     // PLL param config
     if freq == 26_000_000 {
-        pds.clkpll_cp.modify(|_, w| unsafe {
+        pds.clkpll_cp().modify(|_, w| unsafe {
             w.clkpll_icp_1u()
                 .bits(1)
                 .clkpll_icp_5u()
@@ -473,7 +473,7 @@ fn pds_power_on_pll(freq: u32) {
                 .set_bit()
         });
 
-        pds.clkpll_rz.modify(|_, w| unsafe {
+        pds.clkpll_rz().modify(|_, w| unsafe {
             w.clkpll_c3()
                 .bits(2)
                 .clkpll_cz()
@@ -484,7 +484,7 @@ fn pds_power_on_pll(freq: u32) {
                 .clear_bit()
         });
     } else {
-        pds.clkpll_cp.modify(|_, w| unsafe {
+        pds.clkpll_cp().modify(|_, w| unsafe {
             w.clkpll_icp_1u()
                 .bits(0)
                 .clkpll_icp_5u()
@@ -493,7 +493,7 @@ fn pds_power_on_pll(freq: u32) {
                 .clear_bit()
         });
 
-        pds.clkpll_rz.modify(|_, w| unsafe {
+        pds.clkpll_rz().modify(|_, w| unsafe {
             w.clkpll_c3()
                 .bits(3)
                 .clkpll_cz()
@@ -505,10 +505,10 @@ fn pds_power_on_pll(freq: u32) {
         });
     }
 
-    pds.clkpll_top_ctrl
+    pds.clkpll_top_ctrl()
         .modify(|_, w| unsafe { w.clkpll_postdiv().bits(0x14).clkpll_refdiv_ratio().bits(2) });
 
-    pds.clkpll_sdm.modify(|_, w| unsafe {
+    pds.clkpll_sdm().modify(|_, w| unsafe {
         w.clkpll_sdmin().bits(match freq {
             24_000_000 => 0x50_0000,
             32_000_000 => 0x3C_0000,
@@ -519,7 +519,7 @@ fn pds_power_on_pll(freq: u32) {
         })
     });
 
-    pds.clkpll_fbdv.modify(|_, w| unsafe {
+    pds.clkpll_fbdv().modify(|_, w| unsafe {
         w.clkpll_sel_fb_clk()
             .bits(1)
             .clkpll_sel_sample_clk()
@@ -529,14 +529,14 @@ fn pds_power_on_pll(freq: u32) {
     /*************************/
     /* PLL power up sequence */
     /*************************/
-    pds.pu_rst_clkpll
+    pds.pu_rst_clkpll()
         .modify(|_, w| w.pu_clkpll_sfreg().set_bit());
 
     delay.delay_us(5);
 
-    pds.pu_rst_clkpll.modify(|_, w| w.pu_clkpll().set_bit());
+    pds.pu_rst_clkpll().modify(|_, w| w.pu_clkpll().set_bit());
 
-    pds.pu_rst_clkpll.modify(|_, w| {
+    pds.pu_rst_clkpll().modify(|_, w| {
         w.clkpll_pu_cp()
             .set_bit()
             .clkpll_pu_pfd()
@@ -549,28 +549,28 @@ fn pds_power_on_pll(freq: u32) {
 
     delay.delay_us(5);
 
-    pds.pu_rst_clkpll
+    pds.pu_rst_clkpll()
         .modify(|_, w| w.clkpll_sdm_reset().set_bit());
 
     delay.delay_us(1);
 
-    pds.pu_rst_clkpll
+    pds.pu_rst_clkpll()
         .modify(|_, w| w.clkpll_reset_fbdv().set_bit());
 
     delay.delay_us(2);
 
-    pds.pu_rst_clkpll
+    pds.pu_rst_clkpll()
         .modify(|_, w| w.clkpll_reset_fbdv().clear_bit());
 
     delay.delay_us(1);
 
-    pds.pu_rst_clkpll
+    pds.pu_rst_clkpll()
         .modify(|_, w| w.clkpll_sdm_reset().clear_bit());
 }
 
 fn aon_power_on_xtal() -> Result<(), &'static str> {
     unsafe { &*pac::AON::ptr() }
-        .rf_top_aon
+        .rf_top_aon()
         .modify(|_, w| w.pu_xtal_aon().set_bit().pu_xtal_buf_aon().set_bit());
 
     let mut delaysrc = McycleDelay::new(system_core_clock_get());
@@ -579,7 +579,7 @@ fn aon_power_on_xtal() -> Result<(), &'static str> {
     delaysrc.delay_us(10);
 
     while unsafe { &*pac::AON::ptr() }
-        .tsen
+        .tsen()
         .read()
         .xtal_rdy()
         .bit_is_clear()
@@ -597,7 +597,7 @@ fn aon_power_on_xtal() -> Result<(), &'static str> {
 }
 
 fn hbn_set_root_clk_sel_pll() {
-    unsafe { &*pac::HBN::ptr() }.hbn_glb.modify(|r, w| unsafe {
+    unsafe { &*pac::HBN::ptr() }.hbn_glb().modify(|r, w| unsafe {
         w.hbn_root_clk_sel()
             .bits(r.hbn_root_clk_sel().bits() | 0b10u8)
     });
@@ -605,20 +605,20 @@ fn hbn_set_root_clk_sel_pll() {
 
 fn hbn_set_root_clk_sel_rc32() {
     unsafe { &*pac::HBN::ptr() }
-        .hbn_glb
+        .hbn_glb()
         .modify(|_, w| unsafe { w.hbn_root_clk_sel().bits(0b00u8) });
 }
 
 fn pds_enable_pll_all_clks() {
     unsafe { &*pac::PDS::ptr() }
-        .clkpll_output_en
+        .clkpll_output_en()
         .modify(|r, w| unsafe { w.bits(r.bits() | 0x1FF) });
 }
 
 /// Sets the system clock to use the internal 32Mhz RC oscillator
 fn glb_set_system_clk_rc32() {
     // reg_bclk_en = reg_hclk_en = reg_fclk_en = 1, cannot be zero
-    unsafe { &*pac::GLB::ptr() }.clk_cfg0.modify(|_, w| {
+    unsafe { &*pac::GLB::ptr() }.clk_cfg0().modify(|_, w| {
         w.reg_bclk_en()
             .set_bit()
             .reg_hclk_en()
@@ -637,7 +637,7 @@ fn glb_set_system_clk_rc32() {
 
     // Select PKA clock from hclk
     unsafe { &*pac::GLB::ptr() }
-        .swrst_cfg2
+        .swrst_cfg2()
         .modify(|_, w| w.pka_clk_sel().clear_bit());
 }
 
@@ -659,13 +659,13 @@ fn glb_set_system_clk_pll(target_core_clk: u32, xtal_freq: u32) {
 
     // Enable PLL
     unsafe { &*pac::GLB::ptr() }
-        .clk_cfg0
+        .clk_cfg0()
         .modify(|_, w| w.reg_pll_en().set_bit());
 
     // select which pll output clock to use before
     // selecting root clock via HBN_Set_ROOT_CLK_Sel
     // Note that 192Mhz is out of spec
-    unsafe { &*pac::GLB::ptr() }.clk_cfg0.modify(|_, w| unsafe {
+    unsafe { &*pac::GLB::ptr() }.clk_cfg0().modify(|_, w| unsafe {
         w.reg_pll_sel().bits(match target_core_clk {
             48_000_000 => 0,
             120_000_000 => 1,
@@ -685,7 +685,7 @@ fn glb_set_system_clk_pll(target_core_clk: u32, xtal_freq: u32) {
     // For frequencies above 120Mhz we need 2 clocks to access internal rom
     if target_core_clk > 120_000_000 {
         unsafe { &*pac::L1C::ptr() }
-            .l1c_config
+            .l1c_config()
             .modify(|_, w| w.irom_2t_access().set_bit());
     }
 
@@ -700,6 +700,6 @@ fn glb_set_system_clk_pll(target_core_clk: u32, xtal_freq: u32) {
     // use 120Mhz PLL tap for PKA clock since we're using PLL
     // NOTE: This isn't documented in the datasheet!
     unsafe { &*pac::GLB::ptr() }
-        .swrst_cfg2
+        .swrst_cfg2()
         .modify(|_, w| w.pka_clk_sel().set_bit());
 }

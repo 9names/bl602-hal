@@ -53,7 +53,7 @@ impl Checksum {
     /// Resets the CKS peripheral while setting the `endianness`.
     #[inline(always)]
     pub fn reset(&self, endianness: Endianness) {
-        self.cks.cks_config.write(|w| {
+        self.cks.cks_config().write(|w| {
             // Set `cr_cks_clr` to `1` in order to clear the checksum engine state
             w.cr_cks_clr()
                 .set_bit()
@@ -70,7 +70,7 @@ impl Checksum {
     #[inline(always)]
     pub fn set_endianness(&self, endianness: Endianness) {
         // Set the `cr_cks_byte_swap` bit to 1 when big endian, 0 when little endian.
-        self.cks.cks_config.write(|w| {
+        self.cks.cks_config().write(|w| {
             w.cr_cks_byte_swap().bit(match endianness {
                 Endianness::Big => true,
                 Endianness::Little => false,
@@ -82,14 +82,14 @@ impl Checksum {
     #[inline(always)]
     pub fn write(&self, bytes: &[u8]) {
         for byte in bytes {
-            self.cks.data_in.write(|w| unsafe { w.bits(*byte as u32) });
+            self.cks.data_in().write(|w| unsafe { w.bits(*byte as u32) });
         }
     }
 
     /// Reads the computed 16-bit result from the checksum engine.
     #[inline(always)]
     pub fn result(&self) -> u16 {
-        self.cks.cks_out.read().bits() as u16
+        self.cks.cks_out().read().bits() as u16
     }
 
     /// Releases the checksum (`CKS`) peripheral.

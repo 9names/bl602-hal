@@ -130,7 +130,7 @@ where
 
         let len = (len - 1) as u8;
 
-        i2c.i2c_prd_start.modify(|_r, w| unsafe {
+        i2c.i2c_prd_start().modify(|_r, w| unsafe {
             w.cr_i2c_prd_s_ph_0()
                 .bits(len)
                 .cr_i2c_prd_s_ph_1()
@@ -141,7 +141,7 @@ where
                 .bits(len)
         });
 
-        i2c.i2c_prd_stop.modify(|_r, w| unsafe {
+        i2c.i2c_prd_stop().modify(|_r, w| unsafe {
             w.cr_i2c_prd_p_ph_0()
                 .bits(len)
                 .cr_i2c_prd_p_ph_1()
@@ -152,7 +152,7 @@ where
                 .bits(len)
         });
 
-        i2c.i2c_prd_data.modify(|_r, w| unsafe {
+        i2c.i2c_prd_data().modify(|_r, w| unsafe {
             w.cr_i2c_prd_d_ph_0()
                 .bits(len)
                 .cr_i2c_prd_d_ph_1()
@@ -184,7 +184,7 @@ where
     /// Clear FIFOs
     pub fn clear_fifo(&mut self) {
         self.i2c
-            .i2c_fifo_config_0
+            .i2c_fifo_config_0()
             .write(|w| w.rx_fifo_clr().set_bit().tx_fifo_clr().set_bit());
     }
 }
@@ -202,16 +202,16 @@ where
         address: i2cAlpha::SevenBitAddress,
         buffer: &mut [u8],
     ) -> Result<(), Self::Error> {
-        let fifo_config = self.i2c.i2c_fifo_config_0.read();
+        let fifo_config = self.i2c.i2c_fifo_config_0().read();
 
         if fifo_config.rx_fifo_overflow().bit_is_set() {
             self.i2c
-                .i2c_fifo_config_0
+                .i2c_fifo_config_0()
                 .write(|w| w.rx_fifo_clr().set_bit());
             return Err(Error::RxOverflow);
         } else if fifo_config.rx_fifo_underflow().bit_is_set() {
             self.i2c
-                .i2c_fifo_config_0
+                .i2c_fifo_config_0()
                 .write(|w| w.rx_fifo_clr().set_bit());
             return Err(Error::RxUnderflow);
         }
@@ -220,7 +220,7 @@ where
         let mut word_buffer = [0u32; 255];
         let tmp = &mut word_buffer[..count];
 
-        self.i2c.i2c_config.modify(|_r, w| unsafe {
+        self.i2c.i2c_config().modify(|_r, w| unsafe {
             w.cr_i2c_pkt_len()
                 .bits(buffer.len() as u8 - 1u8)
                 .cr_i2c_slv_addr()
@@ -239,18 +239,18 @@ where
 
         for value in tmp.iter_mut() {
             let mut timeout_countdown = self.timeout;
-            while self.i2c.i2c_fifo_config_1.read().rx_fifo_cnt().bits() == 0 {
+            while self.i2c.i2c_fifo_config_1().read().rx_fifo_cnt().bits() == 0 {
                 if timeout_countdown == 0 {
                     return Err(Error::Timeout);
                 }
                 timeout_countdown -= 1;
             }
-            *value = self.i2c.i2c_fifo_rdata.read().i2c_fifo_rdata().bits();
+            *value = self.i2c.i2c_fifo_rdata().read().i2c_fifo_rdata().bits();
         }
 
         self.i2c
             .i2c_config
-            .modify(|_r, w| w.cr_i2c_m_en().clear_bit());
+            ().modify(|_r, w| w.cr_i2c_m_en().clear_bit());
 
         for (idx, value) in buffer.iter_mut().enumerate() {
             let shift_by = (idx % 4 * 8) as u32;
@@ -265,16 +265,16 @@ where
         address: i2cAlpha::SevenBitAddress,
         buffer: &[u8],
     ) -> Result<(), Self::Error> {
-        let fifo_config = self.i2c.i2c_fifo_config_0.read();
+        let fifo_config = self.i2c.i2c_fifo_config_0().read();
 
         if fifo_config.tx_fifo_overflow().bit_is_set() {
             self.i2c
-                .i2c_fifo_config_0
+                .i2c_fifo_config_0()
                 .write(|w| w.tx_fifo_clr().set_bit());
             return Err(Error::TxOverflow);
         } else if fifo_config.tx_fifo_underflow().bit_is_set() {
             self.i2c
-                .i2c_fifo_config_0
+                .i2c_fifo_config_0()
                 .write(|w| w.tx_fifo_clr().set_bit());
             return Err(Error::TxUnderflow);
         }
@@ -287,7 +287,7 @@ where
         }
         let tmp = &word_buffer[..count];
 
-        self.i2c.i2c_config.modify(|_r, w| unsafe {
+        self.i2c.i2c_config().modify(|_r, w| unsafe {
             w.cr_i2c_pkt_len()
                 .bits(buffer.len() as u8 - 1u8)
                 .cr_i2c_slv_addr()
@@ -306,24 +306,24 @@ where
 
         for value in tmp.iter() {
             let mut timeout_countdown = self.timeout;
-            while self.i2c.i2c_fifo_config_1.read().tx_fifo_cnt().bits() == 0 {
+            while self.i2c.i2c_fifo_config_1().read().tx_fifo_cnt().bits() == 0 {
                 if timeout_countdown == 0 {
                     return Err(Error::Timeout);
                 }
                 timeout_countdown -= 1;
             }
             self.i2c
-                .i2c_fifo_wdata
+                .i2c_fifo_wdata()
                 .write(|w| unsafe { w.i2c_fifo_wdata().bits(*value) });
         }
 
-        while self.i2c.i2c_bus_busy.read().sts_i2c_bus_busy().bit_is_set() {
+        while self.i2c.i2c_bus_busy().read().sts_i2c_bus_busy().bit_is_set() {
             // wait for transfer to finish
         }
 
         self.i2c
             .i2c_config
-            .modify(|_r, w| w.cr_i2c_m_en().clear_bit());
+            ().modify(|_r, w| w.cr_i2c_m_en().clear_bit());
 
         Ok(())
     }

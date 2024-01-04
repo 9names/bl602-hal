@@ -19,10 +19,10 @@ impl Rtc {
     /// Creates and starts the RTC
     pub fn new(hbn: HBN) -> Rtc {
         // clear counter
-        hbn.hbn_ctl
+        hbn.hbn_ctl()
             .modify(|r, w| unsafe { w.rtc_ctl().bits(r.rtc_ctl().bits() & 0xfe) });
         // enable counter
-        hbn.hbn_ctl
+        hbn.hbn_ctl()
             .modify(|r, w| unsafe { w.rtc_ctl().bits(r.rtc_ctl().bits() | 1) });
 
         Rtc { hbn }
@@ -31,11 +31,11 @@ impl Rtc {
     /// Get elapsed milliseconds since the RTC was created
     pub fn get_millis(&self) -> u64 {
         self.hbn
-            .rtc_time_h
+            .rtc_time_h()
             .modify(|r, w| unsafe { w.bits(r.bits() | 1 << 31) });
 
-        let h = self.hbn.rtc_time_h.read().bits();
-        let l = self.hbn.rtc_time_l.read().bits();
+        let h = self.hbn.rtc_time_h().read().bits();
+        let l = self.hbn.rtc_time_l().read().bits();
         let ts = (h as u64) << 32 | l as u64; // in counter units
 
         // from IOT SDK:

@@ -188,7 +188,7 @@ where
             ans as u16
         };
 
-        uart.uart_bit_prd.write(|w| unsafe {
+        uart.uart_bit_prd().write(|w| unsafe {
             w.cr_urx_bit_prd()
                 .bits(divisor - 1)
                 .cr_utx_bit_prd()
@@ -201,7 +201,7 @@ where
             Order::MsbFirst => true,
         };
 
-        uart.data_config
+        uart.data_config()
             .write(|w| w.cr_uart_bit_inv().bit(order_cfg));
 
         // UART TX config
@@ -223,7 +223,7 @@ where
             Parity::ParityOdd => (true, true),   // odd => 1
         };
 
-        uart.utx_config.write(|w| unsafe {
+        uart.utx_config().write(|w| unsafe {
             w.cr_utx_prt_en()
                 .bit(parity_enable)
                 .cr_utx_prt_sel()
@@ -241,7 +241,7 @@ where
         });
 
         // UART RX config
-        uart.urx_config.write(|w| unsafe {
+        uart.urx_config().write(|w| unsafe {
             w.cr_urx_prt_en()
                 .bit(parity_enable)
                 .cr_urx_prt_sel()
@@ -275,11 +275,11 @@ where
 {
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
         // If there's no room to write a byte or more to the FIFO, return WouldBlock
-        if self.uart.uart_fifo_config_1.read().tx_fifo_cnt().bits() == 0 {
+        if self.uart.uart_fifo_config_1().read().tx_fifo_cnt().bits() == 0 {
             Err(nb::Error::WouldBlock)
         } else {
             self.uart
-                .uart_fifo_wdata
+                .uart_fifo_wdata()
                 .write(|w| unsafe { w.bits(word as u32) });
             Ok(())
         }
@@ -287,8 +287,8 @@ where
 
     fn flush(&mut self) -> nb::Result<(), Self::Error> {
         // If we're still transmitting or have data in our 32 byte FIFO, return WouldBlock
-        if self.uart.uart_fifo_config_1.read().tx_fifo_cnt().bits() != 32
-            || self.uart.uart_status.read().sts_utx_bus_busy().bit_is_set()
+        if self.uart.uart_fifo_config_1().read().tx_fifo_cnt().bits() != 32
+            || self.uart.uart_status().read().sts_utx_bus_busy().bit_is_set()
         {
             Err(nb::Error::WouldBlock)
         } else {
@@ -302,10 +302,10 @@ where
     UART: Deref<Target = pac::uart0::RegisterBlock>,
 {
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
-        if self.uart.uart_fifo_config_1.read().rx_fifo_cnt().bits() == 0 {
+        if self.uart.uart_fifo_config_1().read().rx_fifo_cnt().bits() == 0 {
             Err(nb::Error::WouldBlock)
         } else {
-            let ans = self.uart.uart_fifo_rdata.read().bits();
+            let ans = self.uart.uart_fifo_rdata().read().bits();
             Ok((ans & 0xff) as u8)
         }
     }

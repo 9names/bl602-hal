@@ -137,50 +137,50 @@ macro_rules! impl_timer_channel {
                 /// Enable interrupt for match register 0.
                 pub fn enable_match0_interrupt(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tier $channel>].modify(|_r, w| w.tier_0().set_bit());
+                    timer.[<tier $channel>]().modify(|_r, w| w.tier_0().set_bit());
                 }
 
                 /// Enable interrupt for match register 1.
                 pub fn enable_match1_interrupt(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tier $channel>].modify(|_r, w| w.tier_1().set_bit());
+                    timer.[<tier $channel>]().modify(|_r, w| w.tier_1().set_bit());
                 }
 
                 /// Enable interrupt for match register 2.
                 pub fn enable_match2_interrupt(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tier $channel>].modify(|_r, w| w.tier_2().set_bit());
+                    timer.[<tier $channel>]().modify(|_r, w| w.tier_2().set_bit());
                 }
 
                 /// Disable interrupt for match register 0.
                 pub fn disable_match0_interrupt(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tier $channel>].modify(|_r, w| w.tier_0().clear_bit());
+                    timer.[<tier $channel>]().modify(|_r, w| w.tier_0().clear_bit());
                 }
 
                 /// Disable interrupt for match register 1.
                 pub fn disable_match1_interrupt(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tier $channel>].modify(|_r, w| w.tier_1().clear_bit());
+                    timer.[<tier $channel>]().modify(|_r, w| w.tier_1().clear_bit());
                 }
 
                 /// Disable interrupt for match register 2.
                 pub fn disable_match2_interrupt(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tier $channel>].modify(|_r, w| w.tier_2().clear_bit());
+                    timer.[<tier $channel>]().modify(|_r, w| w.tier_2().clear_bit());
                 }
 
                 /// Enable this counter
                 pub fn enable(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.tcer.modify(|_r, w| w.[<timer $channel _en>]().set_bit());
+                    timer.tcer().modify(|_r, w| w.[<timer $channel _en>]().set_bit());
                     self.is_running.replace(true);
                 }
 
                 /// Disable this counter
                 pub fn disable(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.tcer.modify(|_r, w| w.[<timer $channel _en>]().set_bit());
+                    timer.tcer().modify(|_r, w| w.[<timer $channel _en>]().set_bit());
                     self.is_running.replace(false);
                 }
 
@@ -193,28 +193,28 @@ macro_rules! impl_timer_channel {
                 /// TICR register is write-only, no need to preserve register contents
                 pub fn clear_match0_interrupt(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<ticr $channel>].write(|w| w.tclr_0().set_bit());
+                    timer.[<ticr $channel>]().write(|w| w.tclr_0().set_bit());
                 }
 
                 /// Clear interrupt for match register 1.
                 /// TICR register is write-only, no need to preserve register contents
                 pub fn clear_match1_interrupt(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<ticr $channel>].write(|w| w.tclr_1().set_bit());
+                    timer.[<ticr $channel>]().write(|w| w.tclr_1().set_bit());
                 }
 
                 /// Clear interrupt for match register 2.
                 /// TICR register is write-only, no need to preserve register contents
                 pub fn clear_match2_interrupt(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<ticr $channel>].write(|w| w.tclr_2().set_bit());
+                    timer.[<ticr $channel>]().write(|w| w.tclr_2().set_bit());
                 }
 
                 /// Sets when the to preload.
                 pub fn set_preload(&self, preload: Preload) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
                     timer
-                        .[<tplcr $channel>]
+                        .[<tplcr $channel>]()
                         .modify(|_r, w| unsafe { w.tplcr().bits(preload.to_prlcr()) });
                 }
 
@@ -223,7 +223,7 @@ macro_rules! impl_timer_channel {
                     let time: Nanoseconds::<u64> = time.into();
                     let time = (self.clock.0 as u64 * time.integer() / 1_000_000_000_u64) as u32;
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tmr $channel _0>].modify(|_r, w| unsafe { w.tmr().bits(time) });
+                    timer.[<tmr $channel _0>]().modify(|_r, w| unsafe { w.tmr().bits(time) });
                 }
 
                 /// Sets match register 1
@@ -231,7 +231,7 @@ macro_rules! impl_timer_channel {
                     let time: Nanoseconds::<u64> = time.into();
                     let time = (self.clock.0 as u64 * time.integer() / 1_000_000_000_u64) as u32;
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tmr $channel _1>].modify(|_r, w| unsafe { w.tmr().bits(time) });
+                    timer.[<tmr $channel _1>]().modify(|_r, w| unsafe { w.tmr().bits(time) });
                 }
 
                 /// Sets match register 2
@@ -239,50 +239,50 @@ macro_rules! impl_timer_channel {
                     let time: Nanoseconds::<u64> = time.into();
                     let time = (self.clock.0 as u64 * time.integer() / 1_000_000_000_u64) as u32;
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tmr $channel _2>].modify(|_r, w| unsafe { w.tmr().bits(time) });
+                    timer.[<tmr $channel _2>]().modify(|_r, w| unsafe { w.tmr().bits(time) });
                 }
 
                 /// Current counter value in raw ticks.
                 pub fn current_ticks(&self) -> u32 {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tcr $channel>].read().bits()
+                    timer.[<tcr $channel>]().read().bits()
                 }
 
                 /// Current counter value in nanoseconds.
                 pub fn current_time(&self) -> Nanoseconds::<u64> {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    let ticks = timer.[<tcr $channel>].read().bits() as u64;
+                    let ticks = timer.[<tcr $channel>]().read().bits() as u64;
                     Nanoseconds::<u64>::new( (ticks as u64 * 1_000_000_000_u64 / self.clock.0 as u64) )
                 }
 
                 /// Will only become true if `enable_match0_interrupt` is active
                 pub fn is_match0(&self) -> bool {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tmsr $channel>].read().tmsr_0().bit()
+                    timer.[<tmsr $channel>]().read().tmsr_0().bit()
                 }
 
                 /// Will only become true if `enable_match2_interrupt` is active
                 pub fn is_match1(&self) -> bool {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tmsr $channel>].read().tmsr_1().bit()
+                    timer.[<tmsr $channel>]().read().tmsr_1().bit()
                 }
 
                 /// Will only become true if `enable_match2_interrupt` is active
                 pub fn is_match2(&self) -> bool {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tmsr $channel>].read().tmsr_2().bit()
+                    timer.[<tmsr $channel>]().read().tmsr_2().bit()
                 }
 
                 /// Set pre-load mode.
                 pub fn pre_load_mode(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.tcmr.modify(|_r, w| w.[<timer $channel _mode>]().clear_bit());
+                    timer.tcmr().modify(|_r, w| w.[<timer $channel _mode>]().clear_bit());
                 }
 
                 /// Set free running mode.
                 pub fn free_running_mode(&self) {
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.tcmr.modify(|_r, w| w.[<timer $channel _mode>]().set_bit());
+                    timer.tcmr().modify(|_r, w| w.[<timer $channel _mode>]().set_bit());
                 }
 
                 /// The value which should be used for preload.
@@ -290,7 +290,7 @@ macro_rules! impl_timer_channel {
                     let time: Nanoseconds::<u64> = time.into();
                     let time = (self.clock.0 as u64 * time.0 / 1_000_000_000_u64) as u32;
                     let timer = unsafe { &*pac::TIMER::ptr() };
-                    timer.[<tplvr $channel>].modify(|_r, w| unsafe { w.bits(time) });
+                    timer.[<tplvr $channel>]().modify(|_r, w| unsafe { w.bits(time) });
                 }
             }
         }
@@ -345,7 +345,7 @@ macro_rules! impl_timer_channel {
                     let target_clock: Hertz = desired_timing.into();
                     let timer = unsafe { &*pac::TIMER::ptr() };
                     timer
-                        .tccr
+                        .tccr()
                         .modify(|_r, w| unsafe { w.[<cs_ $channel_cs>]().bits(source.tccr_value()) });
 
                     let divider = (source.hertz() / target_clock.0).0;
@@ -355,13 +355,13 @@ macro_rules! impl_timer_channel {
                     }
 
                     timer
-                        .tcdr
+                        .tcdr()
                         .modify(|_r, w| unsafe { w.[<tcdr $channel>]().bits((divider - 1) as u8) });
 
-                    timer.tcmr.modify(|_r, w| {
+                    timer.tcmr().modify(|_r, w| {
                         w.[<timer $channel _mode>]().clear_bit() // pre-load mode
                     });
-                    timer.[<tplvr $channel>].modify(|_r, w| unsafe {
+                    timer.[<tplvr $channel>]().modify(|_r, w| unsafe {
                         w.tplvr().bits(0) // pre-load value
                     });
 
