@@ -237,6 +237,7 @@ where
                 .set_bit()
         });
 
+        // let d = bl602_hal::delay::McycleDelay::new(crate::system_core_clock_get());
         for value in tmp.iter_mut() {
             let mut timeout_countdown = self.timeout;
             while self.i2c.i2c_fifo_config_1().read().rx_fifo_cnt().bits() == 0 {

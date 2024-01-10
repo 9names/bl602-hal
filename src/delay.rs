@@ -41,6 +41,11 @@ impl McycleDelay {
 
         while McycleDelay::cycles_since(start_cycle_count) <= cycle_count {}
     }
+
+    #[inline]
+    pub fn elapsed_ms(&self, previous_cycle_count: u64) -> u32 {
+        McycleDelay::cycles_since(previous_cycle_count) as u32 / (self.core_frequency / 1000)
+    }
 }
 
 // embedded-hal 1.0 traits
