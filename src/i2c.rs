@@ -23,6 +23,7 @@ use embedded_hal_zero::blocking::i2c::Read as ReadZero;
 use embedded_hal_zero::blocking::i2c::Write as WriteZero;
 use embedded_time::rate::Hertz;
 
+use crate::delay::McycleDelay;
 use crate::{clock::Clocks, pac};
 
 use self::private::Sealed;
@@ -100,6 +101,7 @@ where
 pub struct I2c<I2C, PINS> {
     i2c: I2C,
     pins: PINS,
+    /// i2c byte timeout of at least `timeout` milliseconds
     timeout: u16,
 }
 
@@ -174,8 +176,7 @@ where
         (self.i2c, self.pins)
     }
 
-    /// Set the timeout when waiting for fifo (rx and tx).
-    /// It's not a time unit but the number of cycles to wait.
+    /// Set the timeout (in milliseconds) for waiting for fifo (rx and tx).
     /// This defaults to 2048
     pub fn set_timeout(&mut self, timeout: u16) {
         self.timeout = timeout;
@@ -238,12 +239,13 @@ where
         });
 
         for value in tmp.iter_mut() {
-            let mut timeout_countdown = self.timeout;
+            // We don't know what the CPU frequency is. Assume maximum of 192Mhz
+            let mut delay = McycleDelay::new(192_000_000);
+            let start_time = McycleDelay::get_cycle_count();
             while self.i2c.i2c_fifo_config_1.read().rx_fifo_cnt().bits() == 0 {
-                if timeout_countdown == 0 {
+                if delay.ms_since(start_time) > self.timeout.into() {
                     return Err(Error::Timeout);
                 }
-                timeout_countdown -= 1;
             }
             *value = self.i2c.i2c_fifo_rdata.read().i2c_fifo_rdata().bits();
         }
@@ -305,12 +307,13 @@ where
         });
 
         for value in tmp.iter() {
-            let mut timeout_countdown = self.timeout;
+            // We don't know what the CPU frequency is. Assume maximum of 192Mhz
+            let mut delay = McycleDelay::new(192_000_000);
+            let start_time = McycleDelay::get_cycle_count();
             while self.i2c.i2c_fifo_config_1.read().tx_fifo_cnt().bits() == 0 {
-                if timeout_countdown == 0 {
+                if delay.ms_since(start_time) > self.timeout.into() {
                     return Err(Error::Timeout);
                 }
-                timeout_countdown -= 1;
             }
             self.i2c
                 .i2c_fifo_wdata
